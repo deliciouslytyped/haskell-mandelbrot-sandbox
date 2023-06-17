@@ -3,12 +3,11 @@ import Data.Complex
 import Control.Monad
 import Lens.Micro
 import Lens.Micro.TH
-import System.IO (hSetBuffering, BufferMode(NoBuffering), stdin)
+import System.IO (hSetBuffering, hSetEcho, BufferMode(NoBuffering), stdin)
 
 mandelbrot w zoom a b =
   let
     halfw = w / 2
-    trf v = ( v - halfw ) / zoom
     lim = 100
 
     endlOn p = if p then "\n" else ""
@@ -25,10 +24,10 @@ mandelbrot w zoom a b =
           bgColorSignal ++ colors ++ "m " ++ reset
       | otherwise = iter (cnt + 1) (acc^2 + pos) pos
 
-    sample x y = iter 0 (0 :+ 0) $ (trf $ x + a) :+ (trf $ y + b)
+    sample x y = iter 0 (0 :+ 0) $ ((x + a - w) / zoom) :+ ((y + b - halfw) / zoom)
 
   in
-    join [ join $ [ sample x y ++ (endlOn $ (w-1) == x ) | x <- [0..w-1] ] | y <- [0..w-1]]
+    join [ join $ [ sample x y ++ (endlOn $ (w*2-1) == x ) | x <- [0..w*2-1] ] | y <- [0..w-1]]
 
 data MyState a = MyState { _x :: a, _y :: a, _zoom :: a } deriving Show
 makeLenses ''MyState
@@ -41,6 +40,7 @@ interactive _st initial =
     alternateOn = "\x1b[?1049h"
     hideCursor = "\x1b[?25l"
     showCursor = "\x1b[?25h"
+    zeroCursor = "\x1b[0;0H"
     clear = "\x1b[2J"
     width = 40
     
@@ -57,10 +57,12 @@ interactive _st initial =
       putStr $ mandelbrot width (_zoom st) (_x st) (_y st)
       putStrLn $ show $ st
   in do
-    putStr $ hideCursor ++ alternateOn
-    if initial then (draw _st) else (pure ())
+    putStr $ hideCursor ++ alternateOn ++ zeroCursor
+    if initial then (do
+      draw _st
+      putStr "\x1b[0;0H"
+      ) else (pure ())
     c <- getChar
-    putStr clear
     let quit = c == 'q'
     if quit
       then (putStr $ alternateOff ++ showCursor)
@@ -73,4 +75,5 @@ interactive _st initial =
 
 main = do
   hSetBuffering stdin NoBuffering
+  hSetEcho stdin False
   interactive initState True
