@@ -3,3 +3,4 @@ Environment: `nix-shell -I nixpkgs=channel:nixos-unstable -p "ghc.withPackages (
 Note the screenshots are outdated
 ![](img/start.png)
 ![](img/zoomed.png)
+![](img/zoomed2.png)
