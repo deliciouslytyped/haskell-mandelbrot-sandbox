@@ -3,6 +3,7 @@ import Data.Complex
 import Control.Monad
 import Lens.Micro
 import Lens.Micro.TH
+import System.IO (hSetBuffering, BufferMode(NoBuffering), stdin)
 
 mandelbrot w zoom a b =
   let
@@ -54,7 +55,7 @@ interactive _st initial =
     
     draw st = do
       putStr $ mandelbrot width (_zoom st) (_x st) (_y st)
-      putStr $ show $ st
+      putStrLn $ show $ st
   in do
     putStr $ hideCursor ++ alternateOn
     if initial then (draw _st) else (pure ())
@@ -70,4 +71,6 @@ interactive _st initial =
         )
 
 
-main = interactive initState True
+main = do
+  hSetBuffering stdin NoBuffering
+  interactive initState True
