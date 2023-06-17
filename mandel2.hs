@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 import Data.Complex
 import Control.Monad
 import Lens.Micro
@@ -67,3 +68,6 @@ interactive _st initial =
         draw st
         interactive st False
         )
+
+
+main = interactive initState True
